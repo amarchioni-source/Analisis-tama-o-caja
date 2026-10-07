@@ -83,6 +83,12 @@ tr.rr td:first-child{border-left:5px solid var(--r-bar)}
 .track u{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
 .track u.cg{background:var(--g-bar)}.track u.cy{background:var(--y-bar)}.track u.cr{background:var(--r-bar)}
 .track s{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);opacity:.7}
+.cw{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:1px}
+.kgc{text-align:center}
+thead th:nth-child(3),thead th:nth-child(4){text-align:center}
+.nb{text-align:center!important}
+.pct{font-weight:700;font-size:12.5px;min-width:36px;text-align:left}
+.pct.cg{color:var(--g)}.pct.cy{color:var(--y)}.pct.cr{color:var(--r)}
 .nb{font-size:10.5px;color:var(--muted);margin-top:2px;text-align:right}
 .nb.lim{color:var(--ink);font-weight:700}
 .det{color:var(--ink)}
@@ -109,7 +115,7 @@ tr.rr td:first-child{border-left:5px solid var(--r-bar)}
   <div class="facts" id="facts"></div>
 
   <div class="tw"><table>
-    <thead><tr><th colspan="7" class="ctl"><div class="bar2">     <label for="dest">Destino</label><select id="dest"></select>     <div class="legend">       <span><i style="background:var(--g-bar)"></i>24.500 kg o más</span>       <span><i style="background:var(--y-bar)"></i>23.500 a 24.499 kg</span>       <span><i style="background:var(--r-bar)"></i>menos de 23.500 kg</span>       <span><i style="background:var(--ink);width:2px;height:10px"></i>marca: 24.500 kg</span>     </div>   </div></th></tr><tr class="hr2">
+    <thead><tr><th colspan="7" class="ctl"><div class="bar2">     <label for="dest">Destino</label><select id="dest"></select>     <div class="legend">       <span><i style="background:var(--g-bar)"></i>24.500 kg o más</span>       <span><i style="background:var(--y-bar)"></i>23.500 a 24.499 kg</span>       <span><i style="background:var(--r-bar)"></i>menos de 23.500 kg</span>       <span>contenedor lleno = % sobre 25.000 kg (máximo 100%)</span>     </div>   </div></th></tr><tr class="hr2">
       <th>Genérico</th>
       <th>Cantidad por caja<small>x15 → x17</small></th>
       <th>Kg contenedor x15<small>1300 cajas × peso prom. de caja<br>cajas finales con tope de 25.000 kg</small></th>
@@ -160,8 +166,19 @@ const rng = (g,m) => g.n>1&&g.pmax-g.pmin>0.05 ? `<br><span class="sub">${f2(g.p
 const LIM = 25000;
 const nbx = (g,max,bx) => Math.min(max, Math.floor(LIM/bx));
 const nbTxt = (g,max,bx) => { const n=nbx(g,max,bx); return n<max ? `<div class="nb lim">con tope de 25.000 kg: ${n} cajas</div>` : `<div class="nb">${n} cajas</div>`; };
-const kgc = (v,extra='') => { const s=st(v), w=Math.min(v/MAXV,1)*100;
-  return `<td class="kgc"><b class="c${s}">${fmt(v)}</b><div class="track"><u class="c${s}" style="width:${w}%"></u><s style="left:${GREEN/MAXV*100}%"></s></div>${extra}</td>`; };
+const CT = {g:'--g-bar',y:'--y-bar',r:'--r-bar'};
+let CTID = 0;
+const cont = v => { const p=Math.min(v/LIM,1), s=st(v), id='cc'+(CTID++), X0=4, IW=84, fw=Math.max(0,p*IW), col='var('+CT[s]+')';
+  let corr='', boxes='';
+  for(let x=X0+2;x<X0+IW;x+=5) corr+=`<line x1="${x}" y1="5" x2="${x}" y2="27" stroke="#cdd6df" stroke-width="1"/>`;
+  const cw=IW/12;
+  for(let r=0;r<2;r++) for(let c=0;c<12;c++) boxes+=`<rect x="${(X0+c*cw+0.6).toFixed(1)}" y="${5+r*11.5}" width="${(cw-1.2).toFixed(1)}" height="10.5" rx="1" style="fill:${col}"/>`;
+  return `<svg class="ct" width="108" height="34" viewBox="0 0 108 34" role="img" aria-label="${Math.round(p*100)}% lleno"><defs><clipPath id="${id}"><rect x="${X0}" y="3" width="${fw.toFixed(1)}" height="26"/></clipPath></defs>`+
+    `<rect x="1" y="1" width="104" height="30" rx="3" fill="#eef2f6" stroke="#5b6b7c" stroke-width="1.6"/>${corr}<g clip-path="url(#${id})">${boxes}</g>`+
+    `<rect x="90" y="2.5" width="14" height="27" fill="#d7dee6" stroke="#5b6b7c" stroke-width=".9"/><line x1="94" y1="4" x2="94" y2="28" stroke="#5b6b7c" stroke-width="1"/><line x1="99" y1="4" x2="99" y2="28" stroke="#5b6b7c" stroke-width="1"/><rect x="92.5" y="13" width="2.6" height="5" rx=".8" fill="#5b6b7c"/><rect x="97.6" y="13" width="2.6" height="5" rx=".8" fill="#5b6b7c"/>`+
+    `<rect x="6" y="31.5" width="14" height="2" rx="1" fill="#5b6b7c"/><rect x="84" y="31.5" width="14" height="2" rx="1" fill="#5b6b7c"/></svg>`; };
+const kgc = (v,extra='') => { const s=st(v), p=Math.round(Math.min(v/LIM,1)*100);
+  return `<td class="kgc"><b class="c${s}">${fmt(v)}</b><div class="cw">${cont(v)}<span class="pct c${s}">${p}%</span></div>${extra}</td>`; };
 const row = g => `<tr class="r${g.s}"><td><span class="nm">${esc(cap(g.g))}</span><br><span class="tag ${clsOf(g)}">${TAG[clsOf(g)]}</span></td>
   <td class="qty">${g.a} → ${g.b}<br>${g.b>g.a?`<span class="chg si">cambia: +${g.b-g.a}</span>`:`<span class="chg no">sin cambio</span>`}</td>
   ${kgc(g.k15,nbTxt(g,1300,g.bx15))}${kgc(g.kp,nbTxt(g,1200,g.bx17))}
