@@ -62,6 +62,8 @@ tr.rg td:first-child{border-left:5px solid var(--g-bar)}
 tr.ry td:first-child{border-left:5px solid var(--y-bar)}
 tr.rr td:first-child{border-left:5px solid var(--r-bar)}
 .nm{font-weight:700;font-size:13.5px}
+.tag{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:4px;margin-bottom:2px}
+.tag.m{background:var(--g-bg);color:var(--g)}.tag.i{background:#e6e9ed;color:#4a5568}.tag.e{background:var(--r-bg);color:var(--r)}
 .rev{color:var(--y);font-size:10.5px}
 .sub{font-size:10.5px;color:var(--muted)}
 .chg{font-weight:700;font-size:10.5px}
@@ -128,6 +130,8 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':
 const FIX = [[/conico/g,'cónico'],[/garron/g,'garrón'],[/corazon/g,'corazón'],[/cordon/g,'cordón'],[/vacio/g,'vacío'],[/ sh$/,' SH'],[/ do$/,' DO'],[/ (\d)c$/,(m,d)=>' '+d+'C'],[/(\d)c /g,(m,d)=>d+'C ']];
 const cap = s => { let x = s.toLowerCase(); FIX.forEach(([r,v])=>{x=x.replace(r,v)}); return x.charAt(0).toUpperCase()+x.slice(1); };
 
+const clsOf = g => { if(g.b<=g.a) return 'e'; const r=g.kp/g.k15-1; return r>0.01?'m':(r<-0.01?'e':'i'); };
+const TAG = {m:'Mejora',i:'No cambia',e:'Empeora'};
 function groups(dest){
   const map = new Map();
   for(const p of DATA){ if(dest!=='Todos' && p.d!==dest) continue; if(!map.has(p.g)) map.set(p.g,[]); map.get(p.g).push(p); }
@@ -149,7 +153,7 @@ const nbx = (g,max,bx) => Math.min(max, Math.floor(LIM/bx));
 const nbTxt = (g,max,bx) => { const n=nbx(g,max,bx); return n<max ? `<div class="nb lim">con tope de 25.000 kg: ${n} cajas</div>` : `<div class="nb">${n} cajas</div>`; };
 const kgc = (v,extra='') => { const s=st(v), w=Math.min(v/MAXV,1)*100;
   return `<td class="kgc"><b class="c${s}">${fmt(v)}</b><div class="track"><u class="c${s}" style="width:${w}%"></u><s style="left:${GREEN/MAXV*100}%"></s></div>${extra}</td>`; };
-const row = g => `<tr class="r${g.s}"><td><span class="nm">${esc(cap(g.g))}</span></td>
+const row = g => `<tr class="r${g.s}"><td><span class="tag ${clsOf(g)}">${TAG[clsOf(g)]}</span><br><span class="nm">${esc(cap(g.g))}</span></td>
   <td class="qty">${g.a} → ${g.b}<br>${g.b>g.a?`<span class="chg si">cambia: +${g.b-g.a}</span>`:`<span class="chg no">sin cambio</span>`}</td>
   ${kgc(g.k15,nbTxt(g,1300,g.bx15))}${kgc(g.kp,nbTxt(g,1200,g.bx17))}
   <td class="det">${f2(g.pu)}${rng(g,1)}${unote(g)}</td><td class="det">${f2(g.bx15)}${rng(g,g.a)}</td><td class="det">${f2(g.bx17)}${rng(g,g.b)}</td></tr>`;
@@ -158,7 +162,7 @@ function render(){
   const all = groups(document.getElementById('dest').value);
   const np = all.reduce((s,g)=>s+g.n,0);
   const cl = {m:0,i:0,e:0};
-  all.forEach(g=>{ if(g.b<=g.a){cl.e++;return;} const r=g.kp/g.k15-1; cl[r>0.01?'m':(r<-0.01?'e':'i')]++; });
+  all.forEach(g=>{ cl[clsOf(g)]++; });
   const pc = n => Math.round(n/all.length*100);
   const base = [
     ['Caja x15','1300 cajas por contenedor'],
