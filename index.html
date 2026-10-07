@@ -21,6 +21,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,
 .wrap{max-width:1030px;margin:0 auto;padding:14px 12px 28px}
 h1{font-size:21px;margin:0 0 2px;font-weight:700}
 .q{color:var(--muted);margin:0 0 10px;font-size:14px}
+.aclar{margin:0 0 10px;padding:6px 10px;border-left:4px solid var(--y-bar);background:var(--y-bg);border-radius:4px;font-size:12.5px}
 .facts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
 .fact{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
 .fact b{display:block;font-size:15px}
@@ -67,6 +68,8 @@ tr.rr td:first-child{border-left:5px solid var(--r-bar)}
 .track u{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
 .track u.cg{background:var(--g-bar)}.track u.cy{background:var(--y-bar)}.track u.cr{background:var(--r-bar)}
 .track s{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);opacity:.7}
+.nb{font-size:10.5px;color:var(--muted);margin-top:2px;text-align:right}
+.nb.lim{color:var(--ink);font-weight:700}
 .det{color:var(--ink)}
 .un{display:inline-block;max-width:150px;white-space:normal;text-align:right;font-size:10.5px;line-height:1.25;color:var(--y);font-weight:700;margin-top:2px}
 .pill{display:inline-block;min-width:84px;text-align:center;font-weight:700;font-size:12px;padding:4px 8px;border-radius:6px}
@@ -84,6 +87,7 @@ tr.rr td:first-child{border-left:5px solid var(--r-bar)}
 <div class="wrap">
   <h1>Caja 60x40x15 vs 60x40x17: kg por contenedor, por corte</h1>
   <p class="q">Se compara cuántos kg lleva el contenedor con la caja x15 (1300 cajas) y con la caja x17 (una fila de cajas menos, 1200 cajas), usando el peso promedio de cada corte.</p>
+  <p class="aclar"><b>Aclaración:</b> no todos los productos se venden en contenedor full monoproducto, pero la representación en kilos del contenedor es para dimensionar bien.</p>
 
   <div class="facts" id="facts"></div>
 
@@ -92,7 +96,7 @@ tr.rr td:first-child{border-left:5px solid var(--r-bar)}
       <th>Genérico</th>
       <th>Cantidad por caja<small>x15 → x17</small></th>
       <th>Kg contenedor x15<small>1300 cajas × peso prom. de caja</small></th>
-      <th>Kg contenedor x17<small>1200 cajas × peso prom. de caja</small></th>
+      <th>Kg contenedor x17<small>1200 cajas × peso prom. de caja<br>cajas finales con tope de 25.000 kg</small></th>
       <th>Peso por unidad<small>promedio, kg</small></th>
       <th>Peso de caja x15<small>promedio, kg</small></th>
       <th>Peso de caja x17<small>promedio, kg</small></th>
@@ -134,11 +138,14 @@ function groups(dest){
 const UNOTE = {};
 const unote = g => UNOTE[g.g] ? `<br><span class="un">${esc(UNOTE[g.g])}</span>` : '';
 const rng = (g,m) => g.n>1&&g.pmax-g.pmin>0.05 ? `<br><span class="sub">${f2(g.pmin*m)} a ${f2(g.pmax*m)}</span>` : '';
-const kgc = v => { const s=st(v), w=Math.min(v/MAXV,1)*100;
-  return `<td class="kgc"><b class="c${s}">${fmt(v)}</b><div class="track"><u class="c${s}" style="width:${w}%"></u><s style="left:${GREEN/MAXV*100}%"></s></div></td>`; };
+const LIM = 25000;
+const nbx = g => Math.min(1200, Math.floor(LIM/g.bx17));
+const nbTxt = g => { const n=nbx(g); return n<1200 ? `<div class="nb lim">con tope de 25.000 kg: ${n} cajas</div>` : `<div class="nb">${n} cajas</div>`; };
+const kgc = (v,extra='') => { const s=st(v), w=Math.min(v/MAXV,1)*100;
+  return `<td class="kgc"><b class="c${s}">${fmt(v)}</b><div class="track"><u class="c${s}" style="width:${w}%"></u><s style="left:${GREEN/MAXV*100}%"></s></div>${extra}</td>`; };
 const row = g => `<tr class="r${g.s}"><td><span class="nm">${esc(cap(g.g))}</span></td>
   <td class="qty">${g.a} → ${g.b}<br>${g.b>g.a?`<span class="chg si">cambia: +${g.b-g.a}</span>`:`<span class="chg no">sin cambio</span>`}</td>
-  ${kgc(g.k15)}${kgc(g.kp)}
+  ${kgc(g.k15)}${kgc(g.kp,nbTxt(g))}
   <td class="det">${f2(g.pu)}${rng(g,1)}${unote(g)}</td><td class="det">${f2(g.bx15)}${rng(g,g.a)}</td><td class="det">${f2(g.bx17)}${rng(g,g.b)}</td></tr>`;
 
 function render(){
