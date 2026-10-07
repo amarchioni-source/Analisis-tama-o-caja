@@ -24,9 +24,11 @@ h1{font-size:21px;margin:0 0 2px;font-weight:700}
 .aclar{margin:0 0 10px;padding:6px 10px;border-left:4px solid var(--y-bar);background:var(--y-bg);border-radius:4px;font-size:12.5px}
 .facts{display:grid;grid-template-columns:repeat(12,1fr);gap:8px;margin-bottom:10px}
 .fact{grid-column:span 3}
-.fact.res{grid-column:span 4;border-left-width:6px}
+.fact.res{grid-column:span 3;border-left-width:6px}
+.fact.res.c{border-left-color:var(--y-bar)}
 .fact.res.m{border-left-color:var(--g-bar)}.fact.res.i{border-left-color:#8a96a5}.fact.res.e{border-left-color:var(--r-bar)}
-.fact.res b{font-size:17px}
+.fact.res b{font-size:14.5px}
+.fact.res.c b{color:var(--y)}
 .fact.res.m b{color:var(--g)}.fact.res.e b{color:var(--r)}
 .fact{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
 .fact b{display:block;font-size:15px}
@@ -62,7 +64,8 @@ tr.rg td:first-child{border-left:5px solid var(--g-bar)}
 tr.ry td:first-child{border-left:5px solid var(--y-bar)}
 tr.rr td:first-child{border-left:5px solid var(--r-bar)}
 .nm{font-weight:700;font-size:13.5px}
-.tag{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:4px;margin-bottom:2px}
+.tag{display:inline-block;white-space:nowrap;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:4px;margin-bottom:2px}
+.tag.c{background:var(--y-bg);color:var(--y)}
 .tag.m{background:var(--g-bg);color:var(--g)}.tag.i{background:#e6e9ed;color:#4a5568}.tag.e{background:var(--r-bg);color:var(--r)}
 .rev{color:var(--y);font-size:10.5px}
 .sub{font-size:10.5px;color:var(--muted)}
@@ -130,8 +133,8 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':
 const FIX = [[/conico/g,'cónico'],[/garron/g,'garrón'],[/corazon/g,'corazón'],[/cordon/g,'cordón'],[/vacio/g,'vacío'],[/ sh$/,' SH'],[/ do$/,' DO'],[/ (\d)c$/,(m,d)=>' '+d+'C'],[/(\d)c /g,(m,d)=>d+'C ']];
 const cap = s => { let x = s.toLowerCase(); FIX.forEach(([r,v])=>{x=x.replace(r,v)}); return x.charAt(0).toUpperCase()+x.slice(1); };
 
-const clsOf = g => { if(g.b<=g.a) return 'e'; const r=g.kp/g.k15-1; return r>0.01?'m':(r<-0.01?'e':'i'); };
-const TAG = {m:'Mejora',i:'No cambia',e:'Empeora'};
+const clsOf = g => { if(g.b<=g.a) return g.kp>=GREEN?'c':'e'; const r=g.kp/g.k15-1; return r>0.01?'m':(r<-0.01?'e':'i'); };
+const TAG = {m:'Mejora',i:'No cambia',e:'Empeora',c:'Empeora, cumple 25.000 kg'};
 function groups(dest){
   const map = new Map();
   for(const p of DATA){ if(dest!=='Todos' && p.d!==dest) continue; if(!map.has(p.g)) map.set(p.g,[]); map.get(p.g).push(p); }
@@ -161,7 +164,7 @@ const row = g => `<tr class="r${g.s}"><td><span class="tag ${clsOf(g)}">${TAG[cl
 function render(){
   const all = groups(document.getElementById('dest').value);
   const np = all.reduce((s,g)=>s+g.n,0);
-  const cl = {m:0,i:0,e:0};
+  const cl = {m:0,i:0,e:0,c:0};
   all.forEach(g=>{ cl[clsOf(g)]++; });
   const pc = n => Math.round(n/all.length*100);
   const base = [
@@ -173,7 +176,8 @@ function render(){
   const res = [
     ['m',`Mejora: ${cl.m} ${cl.m===1?'corte':'cortes'} · ${pc(cl.m)}%`,'suma unidades en x17 y el contenedor lleva más kg'],
     ['i',`No cambia: ${cl.i} ${cl.i===1?'corte':'cortes'} · ${pc(cl.i)}%`,'suma unidades en x17 pero el contenedor lleva casi los mismos kg (±1%)'],
-    ['e',`Empeora: ${cl.e} ${cl.e===1?'corte':'cortes'} · ${pc(cl.e)}%`,'no suma unidades en x17 y, al llevar una fila menos, el contenedor pierde kg']
+    ['c',`Empeora, pero cumple 25.000 kg: ${cl.c} ${cl.c===1?'corte':'cortes'} · ${pc(cl.c)}%`,'no suma unidades en x17 y pierde kg, pero el contenedor igual llega a 25.000 kg'],
+    ['e',`Empeora: ${cl.e} ${cl.e===1?'corte':'cortes'} · ${pc(cl.e)}%`,'no suma unidades en x17, pierde kg y el contenedor no llega a 25.000 kg']
   ].map(([c,b,s])=>`<div class="fact res ${c}"><b>${b}</b><span>${s}</span></div>`).join('');
   document.getElementById('facts').innerHTML = base + res;
   document.getElementById('tb').innerHTML = FAMS.map(f=>{
