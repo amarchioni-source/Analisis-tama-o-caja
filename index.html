@@ -18,7 +18,7 @@
 *,*::before,*::after{box-sizing:inherit}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.3}
-.wrap{max-width:1060px;margin:0 auto;padding:14px 12px 28px}
+.wrap{max-width:1090px;margin:0 auto;padding:14px 12px 28px}
 h1{font-size:21px;margin:0 0 2px;font-weight:700}
 .q{color:var(--muted);margin:0 0 10px;font-size:14px}
 .aclar{margin:0 0 10px;padding:6px 10px;border-left:4px solid var(--y-bar);background:var(--y-bg);border-radius:4px;font-size:12.5px}
@@ -69,7 +69,7 @@ tr.rg td:first-child{border-left:5px solid var(--g-bar)}
 tr.ry td:first-child{border-left:5px solid var(--y-bar)}
 tr.rr td:first-child{border-left:5px solid var(--r-bar)}
 .nm{font-weight:700;font-size:13.5px}
-.tag{display:inline-block;white-space:nowrap;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:4px;margin-bottom:2px}
+.tag{display:inline-block;white-space:nowrap;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:4px;margin-top:3px}
 .tag.c{background:var(--y-bg);color:var(--y)}
 .tag.m{background:var(--g-bg);color:var(--g)}.tag.i{background:#e6e9ed;color:#4a5568}.tag.e{background:var(--r-bg);color:var(--r)}
 .rev{color:var(--y);font-size:10.5px}
@@ -140,7 +140,7 @@ const FIX = [[/conico/g,'cónico'],[/garron/g,'garrón'],[/corazon/g,'corazón']
 const cap = s => { let x = s.toLowerCase(); FIX.forEach(([r,v])=>{x=x.replace(r,v)}); return x.charAt(0).toUpperCase()+x.slice(1); };
 
 const clsOf = g => { if(g.b<=g.a) return g.kp>=GREEN?'c':'e'; const r=g.kp/g.k15-1; return r>0.01?'m':(r<-0.01?'e':'i'); };
-const TAG = {m:'Mejora',i:'No cambia',e:'Empeora',c:'Empeora, cumple 25.000 kg'};
+const TAG = {m:'Mejora',i:'No cambia',e:'Empeora',c:'Empeora, pero cumple 25 TNs/contenedor'};
 function groups(dest){
   const map = new Map();
   for(const p of DATA){ if(dest!=='Todos' && p.d!==dest) continue; if(!map.has(p.g)) map.set(p.g,[]); map.get(p.g).push(p); }
@@ -162,7 +162,7 @@ const nbx = (g,max,bx) => Math.min(max, Math.floor(LIM/bx));
 const nbTxt = (g,max,bx) => { const n=nbx(g,max,bx); return n<max ? `<div class="nb lim">con tope de 25.000 kg: ${n} cajas</div>` : `<div class="nb">${n} cajas</div>`; };
 const kgc = (v,extra='') => { const s=st(v), w=Math.min(v/MAXV,1)*100;
   return `<td class="kgc"><b class="c${s}">${fmt(v)}</b><div class="track"><u class="c${s}" style="width:${w}%"></u><s style="left:${GREEN/MAXV*100}%"></s></div>${extra}</td>`; };
-const row = g => `<tr class="r${g.s}"><td><span class="tag ${clsOf(g)}">${TAG[clsOf(g)]}</span><br><span class="nm">${esc(cap(g.g))}</span></td>
+const row = g => `<tr class="r${g.s}"><td><span class="nm">${esc(cap(g.g))}</span><br><span class="tag ${clsOf(g)}">${TAG[clsOf(g)]}</span></td>
   <td class="qty">${g.a} → ${g.b}<br>${g.b>g.a?`<span class="chg si">cambia: +${g.b-g.a}</span>`:`<span class="chg no">sin cambio</span>`}</td>
   ${kgc(g.k15,nbTxt(g,1300,g.bx15))}${kgc(g.kp,nbTxt(g,1200,g.bx17))}
   <td class="det">${f2(g.pu)}${rng(g,1)}${unote(g)}</td><td class="det">${f2(g.bx15)}${rng(g,g.a)}</td><td class="det">${f2(g.bx17)}${rng(g,g.b)}</td></tr>`;
@@ -182,7 +182,7 @@ function render(){
   const res = [
     ['m',`Mejora: ${cl.m} ${cl.m===1?'corte':'cortes'} · ${pc(cl.m)}%`,'suma unidades en x17 y el contenedor lleva más kg'],
     ['i',`No cambia: ${cl.i} ${cl.i===1?'corte':'cortes'} · ${pc(cl.i)}%`,'suma unidades en x17 pero el contenedor lleva casi los mismos kg (±1%)'],
-    ['c',`Empeora, pero cumple 25.000 kg: ${cl.c} ${cl.c===1?'corte':'cortes'} · ${pc(cl.c)}%`,'no suma unidades en x17 y pierde kg, pero el contenedor igual llega a 25.000 kg'],
+    ['c',`Empeora, pero cumple 25 TNs/contenedor: ${cl.c} ${cl.c===1?'corte':'cortes'} · ${pc(cl.c)}%`,'no suma unidades en x17 y pierde kg, pero el contenedor igual llega a 25 TNs'],
     ['e',`Empeora: ${cl.e} ${cl.e===1?'corte':'cortes'} · ${pc(cl.e)}%`,'no suma unidades en x17, pierde kg y el contenedor no llega a 25.000 kg']
   ].map(([c,b,s])=>`<div class="fact res ${c}"><b>${b}</b><span>${s}</span></div>`).join('');
   document.getElementById('facts').innerHTML = base + res;
